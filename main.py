@@ -14,6 +14,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+import smtplib, ssl
+
 
 from time import sleep
 import time
@@ -22,6 +24,28 @@ import datetime
 #Get to page and sign in
 
 first_iteration = True
+
+def sendEmail() :
+
+    port = 465  # For SSL
+    
+    from inputs import emailSMTP as emailSMTP
+    from inputs import passwordSMTP as passwordSMTP
+   
+    # Create a secure SSL context
+    context = ssl.create_default_context()
+    
+    with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
+        server.login(emailSMTP, passwordSMTP)
+        
+    sender_email = emailSMTP
+    receiver_email = emailSMTP
+    message = """\
+    Subject: New grade available
+    
+    Please check the portal, a new grade is available for you"""
+
+    server.sendmail(sender_email, receiver_email, message)
 
 
 while True:
@@ -51,18 +75,29 @@ while True:
     
     gradesRows = browser.find_elements_by_xpath("//div[@id='divNotasIE']//tbody//tr")
     
-    grades = {}
+    oldGrades = {}
+    newGrades = {}
     
     for row in gradesRows:
         courseName = row.find_elements_by_xpath(".//td")[0].text
         courseGrade = row.find_elements_by_xpath(".//td")[1].text
         
-        grades[courseName] = courseGrade
+        newGrades[courseName] = courseGrade
         
     
-    if first_iteration:
+    if oldGrades = {}: #If first iteration
+        oldGrades = newGrades
+        browser.quit()
+        sleep(5 * 60)
         continue
     
+    if oldGrades != newGrades:
+        sendEmail()
+        browser.quit()
+        sleep(5 * 60)
+        continue
+        
+    oldGrades = newGrades
     browser.quit()
     sleep(5 * 60)
     
